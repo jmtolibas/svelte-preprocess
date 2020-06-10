@@ -3,7 +3,7 @@ import { dirname, basename, resolve } from 'path';
 
 import ts from 'typescript';
 
-import type { Transformer, Options } from '../types';
+import { Transformer, Options } from '../types';
 
 type CompilerOptions = Options.Typescript['compilerOptions'];
 
@@ -130,7 +130,7 @@ function createImportTransformerFromProgram(program: ts.Program) {
       let newImportClause: ts.ImportClause = node.importClause;
 
       if (node.importClause) {
-        // import type {...} from './blah'
+        // import {...} from './blah'
         if (node.importClause?.isTypeOnly) {
           return ts.createEmptyStatement();
         }
