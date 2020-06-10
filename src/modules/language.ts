@@ -1,6 +1,6 @@
 import { basename } from 'path';
 
-import { PreprocessorArgs } from '../types';
+import type { PreprocessorArgs } from '../types';
 
 export const LANG_DICT = new Map([
   ['pcss', 'css'],
