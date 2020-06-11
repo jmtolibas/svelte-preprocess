@@ -91,10 +91,9 @@ describe('transformer - typescript', () => {
       return expect(preprocess(template, opts)).rejects.toThrow('TS6046');
     });
 
-    it('should not type check if "transpileOnly: true"', async () => {
+    it('should transpile ts to js', async () => {
       const opts = getAutoPreprocess({
         typescript: {
-          transpileOnly: true,
           compilerOptions: {
             module: 'es6',
             sourceMap: false,
@@ -104,120 +103,6 @@ describe('transformer - typescript', () => {
       const { code } = await preprocess(template, opts);
 
       return expect(code).toContain(getFixtureContent('script.js'));
-    });
-  });
-
-  describe('code errors', () => {
-    it('should report semantic errors in template', async () => {
-      const { diagnostics } = await transpile('let label:string = 10');
-
-      expect(diagnostics.some((d) => d.code === 2322)).toBe(true);
-    });
-
-    it('should report invalid relative svelte import statements', async () => {
-      const { diagnostics } = await transpile(
-        `import Nested from './fixtures/NonExistent.svelte'`,
-      );
-
-      expect(diagnostics.some((d) => d.code === 2307)).toBe(true);
-    });
-
-    it('should NOT report valid relative svelte import statements', async () => {
-      const { diagnostics } = await transpile(
-        `import Nested from './fixtures/Nested.svelte'`,
-      );
-
-      expect(diagnostics.some((d) => d.code === 2307)).toBe(false);
-    });
-
-    it('should NOT report non-relative svelte import statements', async () => {
-      const { diagnostics } = await transpile(
-        `import Nested from 'svelte/FakeSvelte.svelte'`,
-      );
-
-      expect(diagnostics.some((d) => d.code === 2307)).toBe(false);
-    });
-
-    it('should NOT affect non-svelte import statement', async () => {
-      const { diagnostics } = await transpile(
-        `import Nested from './relative/yaddaYadda.js'`,
-      );
-
-      expect(diagnostics.some((d) => d.code === 2307)).toBe(true);
-    });
-
-    it('should NOT affect import statement without file extension', async () => {
-      const { diagnostics } = await transpile(
-        `import Nested from './relative/noExtension'`,
-      );
-
-      expect(diagnostics.some((d) => d.code === 2307)).toBe(true);
-    });
-
-    it('should NOT report a mismatched variable name error when using reactive variables', async () => {
-      const { diagnostics } = await transpile(
-        `
-          const user = {};
-          $user.name = "test";
-        `,
-      );
-
-      expect(diagnostics.some((d) => d.code === 2552)).toBe(false);
-    });
-
-    it('should report a mismatched variable name error', async () => {
-      const { diagnostics } = await transpile(
-        `
-          const user = {};
-          xuser.name = "test";
-        `,
-      );
-
-      expect(diagnostics.some((d) => d.code === 2552)).toBe(true);
-    });
-
-    it('should remove imports containing types only', async () => {
-      const { code } = await transpile(
-        `
-          import { AType, AInterface } from './fixtures/types'
-          let name: AType = "test1";
-        `,
-      );
-
-      expect(code).not.toContain('/fixtures/types');
-    });
-
-    it('should remove type only imports', async () => {
-      const { code } = await transpile(
-        `
-          import type { AType, AInterface } from './fixtures/types'
-          let name: AType = "test1";
-        `,
-      );
-
-      expect(code).not.toContain('/fixtures/types');
-    });
-
-    it('should remove only the types from the imports', async () => {
-      const { code } = await transpile(
-        `
-          import { AValue, AType, AInterface } from './fixtures/types'
-          let name: AType = "test1";
-        `,
-      );
-
-      expect(code).toContain("import { AValue } from './fixtures/types'");
-    });
-
-    it('should remove the named imports completely if they were all types', async () => {
-      const { code } = await transpile(
-        `
-          import Default, { AType, AInterface } from './fixtures/types'
-          let name: AType = "test1";
-        `,
-      );
-
-      expect(code).toContain("import Default from './fixtures/types'");
     });
   });
 });
